@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>@MYDESK 座席予約システム</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- ===== ヘッダー ===== -->
+<header class="topbar">
+  <div class="logo">
+    <span class="logo-face">☺</span>
+    <div class="logo-text">
+      <strong>@MYDESK</strong>
+      <small>座席予約システム</small>
+    </div>
+  </div>
+  <button id="logoutBtn" class="pill-outline">ログアウト</button>
+</header>
+
+<!-- ===== ユーザーバー ===== -->
+<div class="userbar">
+  <div class="user-left">
+    <span class="user-avatar">👤</span>
+    <span id="userName">小原 圭雄 さん</span>
+  </div>
+  <div class="user-actions">
+    <button id="checkBtn" class="pill-white primary">CHECK IN &amp; OUT</button>
+    <button class="pill-white disabled">リモートワーク開始します</button>
+    <button class="pill-white disabled">客先出社開始します</button>
+    <button class="pill-white disabled">外出開始します</button>
+  </div>
+  <div class="user-right">🔍</div>
+</div>
+
+<div class="layout">
+  <!-- ===== サイドバー ===== -->
+  <aside class="sidebar">
+    <div class="side-section">
+      <div class="side-title">▼ 座席予約</div>
+      <button id="todayBtn" class="pill-outline block">現在日時に戻す</button>
+      <div id="calendar" class="calendar"></div>
+    </div>
+    <div class="side-menu">
+      <div class="menu-head">座席予約・利用状況確認</div>
+      <div class="menu-item active" data-view="seat">座席予約・利用状況確認</div>
+      <div class="menu-item disabled">空き座席検索</div>
+      <div class="menu-item disabled">▶ 一覧検索</div>
+      <div class="menu-item" data-view="roomlist">▼ 会議室予約</div>
+      <div class="menu-sub" data-view="roomlist">会議室使用状況一覧</div>
+      <div class="menu-sub" data-view="roomcal">会議室予約カレンダー</div>
+      <div class="menu-item disabled">▶ その他</div>
+      <div class="menu-item disabled">▶ 操作説明書ダウンロード</div>
+    </div>
+  </aside>
+
+  <!-- ===== メイン ===== -->
+  <main class="main">
+    <!-- --- 座席予約ビュー --- -->
+    <section id="view-seat" class="view">
+      <div class="office-tabs">
+        <span class="office-label">オフィス</span>
+        <button class="office-tab active">神田</button>
+        <button class="office-tab disabled">新大塚</button>
+        <button class="office-tab disabled">大阪</button>
+        <button class="office-tab disabled">大阪-管理部</button>
+        <button class="office-tab disabled">阿波座4F</button>
+        <button class="office-tab disabled">阿波座5F</button>
+        <button class="office-tab disabled">阿波座6F</button>
+        <button class="office-tab disabled">名古屋</button>
+        <button class="office-tab disabled">福岡</button>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-track" id="timelineTrack"></div>
+      </div>
+
+      <div class="map-toolbar">
+        <span>倍率</span>
+        <button class="zoom" data-z="1">100%</button>
+        <button class="zoom" data-z="0.75">75%</button>
+        <button class="zoom active" data-z="0.5">50%</button>
+        <button class="zoom" data-z="0.25">25%</button>
+        <span class="legend"><i class="dot gray"></i>空き <i class="dot blue"></i>予約済 <i class="dot red"></i>利用中</span>
+      </div>
+
+      <div class="map-wrap">
+        <div class="map-scale" id="mapScale">
+          <svg id="floormap" viewBox="0 0 1000 620" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- --- 会議室使用状況一覧ビュー --- -->
+    <section id="view-roomlist" class="view hidden">
+      <h2 class="view-h">会議室使用状況一覧 <small>神田 / <span id="roomlistDate"></span></small></h2>
+      <div id="roomCards" class="room-cards"></div>
+    </section>
+
+    <!-- --- 会議室予約カレンダービュー --- -->
+    <section id="view-roomcal" class="view hidden">
+      <div class="cal-header">
+        <span>神田</span>
+        <button id="calPrev">‹</button>
+        <button id="calToday">今日</button>
+        <button id="calNext">›</button>
+        <strong id="roomcalDate"></strong>
+      </div>
+      <div id="roomCalendar" class="room-calendar"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ===== 座席予約モーダル ===== -->
+<div id="seatModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">🕐 座席予約</span>
+      <button id="modalClose" class="modal-close">✕</button>
+    </div>
+    <div class="modal-toprow">
+      <span class="tag">座席</span><span id="modalSeatId" class="tag-val">S00000</span>
+      <span class="tag">種類</span><span id="modalSeatType" class="tag-val light">自由席</span>
+      <span class="uname">利用者名：</span>
+      <input id="lastName" placeholder="姓">
+      <input id="firstName" placeholder="名">
+      <button id="clearName" class="pill-outline sm">クリア</button>
+    </div>
+    <div class="modal-daterow">
+      <button class="unit active" data-unit="時">時</button>
+      <button class="unit" data-unit="日">日</button>
+      <button class="unit" data-unit="期">期</button>
+      <input type="time" id="startTime" value="09:00">
+      <span>〜</span>
+      <input type="time" id="endTime" value="18:00">
+    </div>
+    <div class="modal-grid-wrap">
+      <table class="modal-grid" id="modalGrid"></table>
+    </div>
+    <div class="modal-foot">
+      <span id="modalHint" class="hint">時間セルをドラッグ、または午前/午後/終日を選んでください</span>
+      <button id="reserveBtn" class="pill-white primary">予約する</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
